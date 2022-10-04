@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {
   Dimensions,
   InteractionManager,
-  NativeModules,
   Platform,
   StyleSheet,
   Animated,
@@ -22,6 +21,11 @@ const IPADPRO11_WIDTH = 834;
 const IPADPRO11_HEIGHT = 1194;
 const IPADPRO129_HEIGHT = 1024;
 const IPADPRO129_WIDTH = 1366;
+const IPHONE12_H = 844;
+const IPHONE12_Max = 926;
+const IPHONE12_Mini = 780;
+const IPHONE14_PRO = 852;
+const IPHONE14_PRO_MAX = 932;
 
 const getResolvedDimensions = () => {
   const { width, height } = Dimensions.get('window');
@@ -31,18 +35,20 @@ const getResolvedDimensions = () => {
 
 const { height: D_HEIGHT, width: D_WIDTH } = getResolvedDimensions();
 
-const { PlatformConstants = {} } = NativeModules;
+const PlatformConstants = Platform.constants || {};
 const { minor = 0 } = PlatformConstants.reactNativeVersion || {};
 
 const isIPhoneX = (() => {
   if (Platform.OS === 'web') return false;
 
   return (
-    (Platform.OS === 'ios' &&
-      ((D_HEIGHT === X_HEIGHT && D_WIDTH === X_WIDTH) ||
-        (D_HEIGHT === X_WIDTH && D_WIDTH === X_HEIGHT))) ||
+    Platform.OS === 'ios' &&
+    ((D_HEIGHT === X_HEIGHT && D_WIDTH === X_WIDTH) ||
+      (D_HEIGHT === X_WIDTH && D_WIDTH === X_HEIGHT)) ||
     ((D_HEIGHT === XSMAX_HEIGHT && D_WIDTH === XSMAX_WIDTH) ||
-      (D_HEIGHT === XSMAX_WIDTH && D_WIDTH === XSMAX_HEIGHT))
+          (D_HEIGHT === XSMAX_WIDTH && D_WIDTH === XSMAX_HEIGHT)) ||
+      (D_HEIGHT === IPHONE12_H) || (D_HEIGHT === IPHONE12_Max) || (D_HEIGHT === IPHONE12_Mini) ||
+      (D_HEIGHT === IPHONE14_PRO || D_HEIGHT === IPHONE14_PRO_MAX)
   );
 })();
 
@@ -190,7 +196,10 @@ class SafeView extends Component {
 
     const { width: WIDTH, height: HEIGHT } = getResolvedDimensions();
 
-    this.view.getNode().measureInWindow((winX, winY, winWidth, winHeight) => {
+    // getNode() is not necessary in newer versions of React Native
+    const node = typeof this.view.measureInWindow === 'function' ? this.view : this.view.getNode();
+
+    node.measureInWindow((winX, winY, winWidth, winHeight) => {
       if (!this.view) {
         return;
       }
